@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Register from './components/Register';
 import Login from './components/Login';
 import './App.css';
+import api from './utils/axios';
+
 
 function App() {
   return (

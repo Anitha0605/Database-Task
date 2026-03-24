@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
+
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -25,15 +26,15 @@ const Register = () => {
     setMessage('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', formData);
-      
+      // ✅ Render URL போடு (localhost இல்ல!)
+      const response = await axios.post('https://database-task-c9sb.onrender.com/api/auth/register', formData);
+
       setMessage('Registered successfully!');
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+
       setTimeout(() => {
         navigate('/');
       }, 1500);
-      
     } catch (error) {
       setMessage(error.response?.data?.message || 'Registration failed');
     } finally {
@@ -43,7 +44,7 @@ const Register = () => {
 
   return (
     <div className="form-container">
-      <h2> Create Account</h2>
+      <h2>Create Account</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Username</label>
@@ -85,13 +86,13 @@ const Register = () => {
           {loading ? 'Creating Account...' : 'Create Account'}
         </button>
       </form>
-      
+
       {message && (
         <div className={`message ${message.includes('successfully') ? 'success' : 'error'}`}>
           {message}
         </div>
       )}
-      
+
       <p style={{ textAlign: 'center', marginTop: '25px', color: '#666' }}>
         Already have an account? <Link to="/login" className="link">Login here</Link>
       </p>

@@ -1,7 +1,10 @@
+// server.js
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const User = require('./models/User');
 
 dotenv.config();
 
@@ -12,30 +15,23 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Import User AFTER mongoose.connect
-let User;
-mongoose.connect('mongodb://localhost:27017/authdb')
-  .then(async () => {
-    console.log(' MongoDB Connected');
-    const userModel = require('./models/User');
-    User = userModel;
-  })
-  .catch(err => {
-    console.log(' MongoDB Error:', err.message);
-  });
+// ✅ MONGODB ATLAS connection
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log(' MongoDB Atlas Connected'))
+  .catch(err => console.log(' MongoDB Error:', err.message));
 
 // Test endpoint
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend 100% working!' });
+  res.json({ message: 'Backend 100% working with Atlas!' });
 });
 
 // REGISTER
 app.post('/api/auth/register', async (req, res) => {
   try {
     console.log(' Register data:', req.body);
-    
+
     const { username, email, password } = req.body;
-    
+
     if (!username || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -43,7 +39,6 @@ app.post('/api/auth/register', async (req, res) => {
       });
     }
 
-    // Check if user exists
     const existingUser = await User.findOne({
       $or: [{ email }, { username }]
     });
@@ -51,11 +46,10 @@ app.post('/api/auth/register', async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email or username'
+        message: 'User already exists'
       });
     }
 
-    // Create new user
     const user = new User({ username, email, password });
     await user.save();
 
@@ -82,10 +76,10 @@ app.post('/api/auth/register', async (req, res) => {
 // LOGIN
 app.post('/api/auth/login', async (req, res) => {
   try {
-    console.log('🔐 Login attempt:', req.body.email);
-    
+    console.log(' Login attempt:', req.body.email);
+
     const { email, password } = req.body;
-    
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({
@@ -112,7 +106,7 @@ app.post('/api/auth/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login Error:', error.message);
+    console.error(' Login Error:', error.message);
     res.status(500).json({
       success: false,
       message: error.message
@@ -120,8 +114,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(` Server running on port ${PORT}`);
-  console.log(`Test`);
 });
